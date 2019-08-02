@@ -18,6 +18,6 @@ class App : Application() {
                 .build()
                 .inject(this)
 
-        ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
+       //ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
     }
 }

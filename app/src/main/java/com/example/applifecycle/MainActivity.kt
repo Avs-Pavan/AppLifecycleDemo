@@ -1,5 +1,6 @@
 package com.example.applifecycle
 
+import android.arch.lifecycle.ProcessLifecycleOwner
 import android.content.pm.PackageManager
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
@@ -8,15 +9,21 @@ import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.widget.LinearLayout
 import io.reactivex.disposables.Disposable
 import therajanmaurya.rxbus.kotlin.RxBus
 import therajanmaurya.rxbus.kotlin.RxEvent
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
 
 class MainActivity : AppCompatActivity() {
+
+
+    lateinit var appLifecycleObserver: AppLifecycleObserver
+
     private lateinit var personDisposable: Disposable
     lateinit var mask: LinearLayout
     val REQUEST_CODE = 0
@@ -24,13 +31,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        mask=findViewById(R.id.mask)
+        mask = findViewById(R.id.mask)
+        appLifecycleObserver = AppLifecycleObserver(this)
+       // ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
+
         personDisposable = RxBus.listen(RxEvent.EventAddPerson::class.java).subscribe {
             Log.e("type", it.personName + " ------ " + getTime())
             //bg 2 fore 1
-            mask.visibility = if (it.personName.equals("1")){
+            mask.visibility = if (it.personName.equals("1")) {
                 View.GONE
-            } else{
+            } else {
                 View.VISIBLE
             }
 
@@ -53,19 +63,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onPause() {
-        super.onPause()
-        Log.e("on pause", getTime())
-        //mask.visibility=View.VISIBLE
-    }
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        override fun onPause() {
+            super.onPause()
+           // mask.visibility=View.VISIBLE
+            Log.e("on pause", getTime())
+        }
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        override fun onResume() {
+            super.onResume()
+           mask.visibility=View.GONE
+            Log.e("on resume", getTime())
+        }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun onResume() {
-        super.onResume()
-       // mask.visibility=View.GONE
-        Log.e("on resume", getTime())
+    override fun onStop() {
+        super.onStop()
+        mask.visibility=View.VISIBLE
+
+        Log.e("on stop", getTime())
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getTime(): String {
